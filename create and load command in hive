@@ -91,11 +91,26 @@ queries
 Ans:-
 INSERT OVERWRITE DIRECTORY '/hive/NYSE/StockCount' row format delimited fields terminated by ',' 
 select count(*) from NYSE;
+ans:- 735026
+------------------------------------------------------------------------------------------------------------------------------------------------
 
-2. Find the total stock volume for each stock.. order it on highest vol wise
+2. Find the top 10 total stock volume for each stock.. order it on highest vol wise
 Ans:- 
 INSERT OVERWRITE DIRECTORY '/hive/NYSE/StockHighVol' row format delimited fields terminated by ',' 
 select sum(volume) as Vol, stock_id from NYSE group by stock_id order by Vol desc;
+ans:- 
+vol	stock_id
+47252808500	AMD
+42061448400	AA
+40263020300	AXP
+30218027200	AET
+25664130200	ABT
+22505621700	AMR
+20750196700	AVP
+16691172100	ABX
+15555731900	APC
+15354593500	ADM
+------------------------------------------------------------------------------------------------------------------------------------------------
 
 3. Find the top5 max variance in a desc order and save o/p in hdfs
 Ans:- 
@@ -107,6 +122,67 @@ It will save output in local system
 INSERT OVERWRITE local DIRECTORY '/home/hduser/top5variance' row format delimited fields terminated by ',' 
 select stock_id, round(max((high-low)/low*100),2) as maxvar from NYSE group by stock_id order by maxvar desc limit 5;
 
+ans:- stock_id	maxvar
+ALY	325.0
+AIG	309.6
+AFF	291.34
+AI	233.33
+AGM	187.95
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+Que. find top 10 customers from sales data who have done maximum purchases and save it on hdfs.
+Ans:- 
+
+INSERT OVERWRITE DIRECTORY '/hive/CustTrans/Top10Customer' row format delimited fields terminated by ',' 
+select a.custno, firstname, lastname, age, profession, round(sum(amount), 2) as total from txnrecords a join customer b on (a.custno = b.custno) group by a.custno,firstname, lastname, age, profession order by total desc limit 10
+
+a.custno	firstname	lastname	age	profession	total
+4009485	Stuart	House	58	Teacher	1973.3
+4006425	Joe	Burns	30	Economist	1732.09
+4000221	Glenda	Boswell	28	Civil engineer	1671.47
+4003228	Elsie	Newton	54	Accountant	1640.63
+4006606	Jackie	Lewis	66	Recreation and fitness worker	1628.94
+4006467	Evelyn	Monroe	37	Financial analyst	1605.95
+4004927	Joan	Lowry	30	Librarian	1576.71
+4008321	Paul	Carey	64	Human resources assistant	1560.79
+4000815	Julie	Galloway	53	Actor	1557.82
+4001051	Arlene	Higgins	62	Police officer	1488.67
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+select custno, count(*) as custcount from txnrecords group by custno order by custcount desc limit 10;
+
+custno	custcount
+4006606	16
+4000815	14
+4009485	14
+4005991	14
+4009673	13
+4005751	13
+4003528	13
+4002572	13
+4002033	13
+4000221	13
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+select custno, round(sum(amount), 2) as total, count(*) as custcount from txnrecords group by custno order by total desc limit 10;
+
+custno	total	custcount
+4009485	1973.3	14
+4006425	1732.09	12
+4000221	1671.47	13
+4003228	1640.63	12
+4006606	1628.94	16
+4006467	1605.95	10
+4004927	1576.71	12
+4008321	1560.79	12
+4000815	1557.82	14
+4001051	1488.67	12
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
