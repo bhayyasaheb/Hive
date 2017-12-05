@@ -747,6 +747,192 @@ DISTRIBUTE BY category;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
+Q. create an index on customer:-
+------------------------------
+
+use niit;
+
+show tables;
+
+***deferred rebuild will create an empty index:-
+
+CREATE INDEX prof_index ON TABLE customer(profession) AS 'compact' WITH deferred rebuild;
+
+--------------------------------------------------------------------------------------------
+
+***alter index will actually create the index
+
+ALTER INDEX prof_index ON customer rebuild;
+
+---------------------------------------------------------------------------------------------
+
+******list all the indexes on the table
+
+show indexes on customer;
+
+output is:-
+idx_name	tab_name	col_names	idx_tab_name			idx_type
+prof_index      customer        profession    niit__customer_prof_index__	compact    
+
+---------------------------------------------------------------------------------------------
+
+*****schema of the index
+
+describe niit__customer_prof_index__;
+
+output is:-
+col_name	data_type	
+profession       string              	                    
+_bucketname      string              	                    
+_offsets       array<bigint> 
+
+----------------------------------------------------------------------------------------------
+
+select * from niit__customer_prof_index__ where profession = "Pilot";
+
+output is:-
+niit__customer_prof_index__.profession	niit__customer_prof_index__._bucketname		niit__customer_prof_index__._offsets
+Pilot					hdfs://localhost:54310/user/training/custs		[0,226,9027,9057,.....]
+Pilot					hdfs://localhost:54310/user/training/custs_add		[0]
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+****Time taken without index
+-----------------------------
+select profession, count(*) as total from customer group by profession;
+
+list of all the profession and the count of customers
+
+output is:- 
+profession	total
+	83
+Accountant	197
+Actor	196
+Agricultural and food scientist	195
+Architect	202
+Artist	175
+Athlete	196
+Automotive mechanic	193
+Carpenter	180
+Chemist	206
+Childcare worker	207
+Civil engineer	193
+Coach	199
+Computer hardware engineer	204
+Computer software engineer	216
+Computer support specialist	222
+Dancer	178
+Designer	204
+Doctor	189
+Economist	189
+Electrical engineer	192
+Electrician	194
+Engineering technician	204
+Environmental scientist	176
+Farmer	196
+Financial analyst	198
+Firefighter	217
+Human resources assistant	212
+Judge	189
+Lawyer	201
+Librarian	218
+Loan officer	221
+Musician	204
+Nurse	191
+Pharmacist	213
+Photographer	222
+Physicist	201
+Pilot	210
+Police officer	209
+Politician	227
+Psychologist	194
+Real estate agent	191
+Recreation and fitness worker	210
+Reporter	199
+Secretary	200
+Social worker	212
+Statistician	196
+Teacher	189
+Therapist	187
+Veterinarian	208
+Writer	95
+Time taken: 1.24 seconds, Fetched: 51 row(s)
+
+--------------------------------------------------------------------------
+
+****Time taken with index
+--------------------------
+select profession, SIZE(`_offsets`) as total from niit__customer_prof_index__;
+
+list of all the profession and the count of customers
+
+output is:-
+profession	total
+	83
+Accountant	197
+Actor	196
+Agricultural and food scientist	195
+Architect	202
+Artist	175
+Athlete	196
+Automotive mechanic	193
+Carpenter	180
+Chemist	206
+Childcare worker	207
+Civil engineer	193
+Coach	199
+Computer hardware engineer	204
+Computer software engineer	216
+Computer support specialist	222
+Dancer	178
+Designer	204
+Doctor	189
+Economist	189
+Electrical engineer	192
+Electrician	194
+Engineering technician	204
+Environmental scientist	176
+Farmer	196
+Financial analyst	198
+Firefighter	217
+Human resources assistant	212
+Judge	189
+Lawyer	201
+Librarian	218
+Loan officer	221
+Musician	204
+Nurse	191
+Pharmacist	213
+Photographer	222
+Physicist	201
+Pilot	209
+Pilot	1
+Police officer	209
+Politician	227
+Psychologist	194
+Real estate agent	191
+Recreation and fitness worker	210
+Reporter	199
+Secretary	200
+Social worker	212
+Statistician	196
+Teacher	189
+Therapist	187
+Veterinarian	208
+Writer	95
+Time taken: 0.047 seconds, Fetched: 52 row(s)
+
+here 52 rows because in external table 1 records coming from custs_add and 51 from custs
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
 
 
 
