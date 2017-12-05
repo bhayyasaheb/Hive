@@ -922,7 +922,7 @@ Veterinarian	208
 Writer	95
 Time taken: 0.047 seconds, Fetched: 52 row(s)
 
-here 52 rows because in external table 1 records coming from custs_add and 51 from custs
+here 52 rows because in external table 1 records for Pilot  coming from custs_add and 51 from custs thats why for Pilot fields comes 2 times in output
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
