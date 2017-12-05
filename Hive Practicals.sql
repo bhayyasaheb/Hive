@@ -545,8 +545,207 @@ Police officer	110918.46	2.17
 Loan officer	110836.27	2.17
 Pharmacist	110087.46	2.15
 
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+Partitioning:- segregating data physically into seperate block with some criteria.
+
+Dynamic Partitioning:- Partitioning data on particular column for all category  
+--------------------
+
+Q. Create Partitioned table (Single bucket):-
+--------------------------------------------
+
+CREATE TABLE txnrecsByCat
+(
+txnno INT,
+txndate STRING,
+custno INT,
+amount DOUBLE,
+product STRING,
+city STRING,
+state STRING,
+spendby STRING
+)
+PARTITIONED BY (category STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+-------------------------------------------------
+
+set properties:-
+--------------
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.dynamic.partition=true;
+
+------------------------------------------------------------------------
+
+Q. Loading data into Partition table txnrecsByCat (single bucket):-
+------------------------------------------------------------------
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat PARTITION(category) 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.product, txn.city, txn.state, txn.spendby, txn.category 
+DISTRIBUTE BY category;
 
 
+select sum(amount) from txnrecords  where category='Air Sports';
+ans:- 99316.89999999994
+It is 64 kb file
+
+
+select sum(amount) from txnrecsbycat where category='Air Sports';
+ans:- 99316.90000000005
+It is 4.21 Mb file
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+Q. Create Partitioned table (single bucket) on a derived column:-
+----------------------------------------------------------------
+
+
+CREATE TABLE txnrecsByCat3
+(
+txnno INT,
+txndate STRING,
+custno INT,
+amount DOUBLE,
+category STRING,
+product STRING,
+city STRING,
+state STRING,
+spendby STRING
+)
+PARTITIONED BY (month STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+--------------------------------------------------------------------------------------------------------
+
+Q. Load data into partition table (single bucket) using a derived partition column
+-----------------------------------------------------------------------------------
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat3 PARTITION(month) 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.category, txn.product, txn.city, txn.state, txn.spendby,
+SUBSTRING(txn.txndate,1,2) as month 
+DISTRIBUTE BY SUBSTRING(txndate,1,2);
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. Create partitioned table (single bucket) on multiple columns:-
+----------------------------------------------------------------
+
+CREATE TABLE txnrecsByCat4
+(
+txnno INT,
+txndate STRING,
+custno INT,
+amount DOUBLE,
+product STRING,
+city STRING,
+state STRING
+)
+PARTITIONED BY (category STRING, spendby STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+--------------------------------------------------------------------------------------
+
+Q. Load data into partition table (single bucket) using multiple partition columns:-
+-----------------------------------------------------------------------------------
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat4 PARTITION(category,spendby) 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.product, txn.city, txn.state, txn.category, txn.spendby
+DISTRIBUTE BY category, spendby;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Static Partitioning:- Partitioning data on particular column for one specific category
+-------------------- - When you want work on particular column then you go for static partitioner
+
+Q. Create a Partition table on category:-
+---------------------------------------
+
+CREATE TABLE txnrecsByCat5
+(
+txnno INT,
+txndate STRING,
+custno INT,
+amount DOUBLE,
+product STRING,
+city STRING,
+state STRING,
+spendby STRING
+)
+PARTITIONED BY (category STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-----------------------------------------------------------
+
+Loading data into Partition table txnrecsByCat5 (single bucket) for a particular category like Air sports, Gymnastics, Team Sports statically:-
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+It is for category = 'Gymnastics':-
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat5 PARTITION(category='Gymnastics') 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.product, txn.city, txn.state, txn.spendby
+WHERE txn.category='Gymnastics';
+
+
+It is for category = 'Team Sports':-
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat5 PARTITION(category='Team Sports') 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.product, txn.city, txn.state, txn.spendby
+WHERE txn.category='Team Sports';
+
+select * from txnrecsbycat5;
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Bucketing :- Bucketting creates different groups & each group contains some data.
+--------   - all common hash key falls in that bucket
+
+clustering the data into various groups
+
+select sum(amount) from txnrecords where category = 'Exercise & Fitness' and (state = 'California' or state = 'New Jesery');
+ 
+
+Q. Create partitioned table (with multiple buckets):-
+-----------------------------------------------------
+
+CREATE TABLE txnrecsByCat2
+(
+txnno INT,
+txndate STRING,
+custno INT,
+amount DOUBLE,
+product STRING,
+city STRING,
+state STRING,
+spendby STRING
+)
+PARTITIONED BY (category STRING)
+CLUSTERED BY (state) into 10 buckets
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+---------------------------------------------------------------------------------
+
+set hive.enforce.bucketing=true;
+
+------------------------------------------------------------------------------------
+
+
+Q. Load data into partition table (with multiple buckets)
+----------------------------------------------------------
+
+FROM txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat2 PARTITION(category) 
+SELECT txn.txnno, txn.txndate, txn.custno, txn.amount, txn.product, txn.city, txn.state, txn.spendby, txn.category
+DISTRIBUTE BY category;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
