@@ -347,9 +347,203 @@ topten.custno	topten.firstname	topten.lastname	topten.age	topten.profession	topt
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
+Q. inserting output of one table into another table ( make sure Airsports table is created beforehand)
+
+create table Airsports:-
+-----------------------
+
+CREATE TABLE airsports
+(
+txnno INT, txndate STRING, custno INT, amount DOUBLE, 
+category STRING, product STRING, city STRING, state STRING, spendby STRING
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+Load data in  Airsports table From txnrecords table:-
+---------------------------------------------------
+
+INSERT OVERWRITE TABLE airsports select * from txnrecords where category = 'Air Sports';
 
 
+Select *  from airsports;
+ans:-960 records
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. find sales done in each payment mode and their percentage:-
+--------------------------------------------------------------
+
+CREATE TABLE totalsales 
+(total bigint)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+Load data in totalsales table:-
+----------------------------
+INSERT OVERWRITE TABLE totalsales SELECT sum(amount) FROM txnrecords;
+
+
+select * from totalsales;
+totalsales.total
+5110820
+
+
+SELECT a.spendby, ROUND(SUM(a.amount),2) AS typesales, ROUND((SUM(a.amount)/b.total*100),2) AS salespercent 
+FROM txnrecords a, totalsales b GROUP BY a.spendby, b.total;
+
+a.spendby	typesales	salespercent
+cash	187685.61	3.67
+credit	4923134.93	96.33
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. find sales based on age group with the % on totalsales:-
+----------------------------------------------------------
+
+Create table out1:-
+------------------
+
+CREATE TABLE out1
+(
+custno int,
+firstname string,
+age int,
+profession string,
+amount double,
+product string
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+---------------------------------------------------
+
+load data in out1:-
+-----------------
+
+INSERT OVERWRITE TABLE out1 
+SELECT a.custno, a.firstname, a.age, a.profession, b.amount, b.product 
+FROM customer a JOIN txnrecords b ON a.custno = b.custno;
+
+select * from out1;
+ans:- 49997 records
+
+------------------------------------------------
+
+Create table out2:-
+-----------------
+
+CREATE TABLE out2
+(
+custno int,
+firstname string,
+age int,
+profession string,
+amount double,
+product string,
+level string
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-------------------------------------------------------
+
+Load data in out2:-
+-----------------
+
+INSERT OVERWRITE TABLE out2
+SELECT * , case 
+when age<30 then 'low' 
+when age>=30 and age<50 then 'middle' 
+when age >=50 then 'old'
+else 'others' end
+from out1;
+
+
+select * from out2;
+ans:- 49997 records
+
+desc out2;
+custno              	int                 	                    
+firstname           	string              	                    
+age                 	int                 	                    
+profession          	string              	                    
+amount              	double              	                    
+product             	string
+
+---------------------------------------------------
+
+Create table out3:-
+-----------------
+
+CREATE TABLE out3
+(
+level string,
+amount double,
+salespercent double
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-----------------------------------------------------
+
+Load data in out3:-
+-----------------
+
+INSERT OVERWRITE TABLE out3
+SELECT a.level, ROUND(SUM(a.amount),2) as totalspent, ROUND((SUM(a.amount)/total*100),2) as salespercent
+FROM out2 a, totalsales b 
+GROUP BY a.level, b.total;
+
+
+select * from out3;
+
+level	amount		salespercent
+low	725221.34	14.19
+middle	1855861.67	36.31
+old	2529287.65	49.49
+
+----------------------------------------------------------------------------
+
+Q. find sales based on profession group with the % on totalsales:-
+------------------------------------------------------------------
+
+Create Table out4:-
+-----------------
+
+CREATE TABLE out4
+(
+profession string,
+amount double,
+salespercent double
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+----------------------------------------------------
+
+Load data in out4:-
+-----------------
+
+INSERT OVERWRITE table out4
+SELECT a.profession, ROUND(SUM(a.amount),2) as totalspent, ROUND((SUM(a.amount)/total*100),2) as salespercent
+FROM out1 a, totalsales b
+GROUP BY a.profession, b.total
+ORDER BY salespercent desc;
+
+select * from out4 limit 10;
+
+out4.profession	out4.amount	out4.salespercent
+Firefighter	116516.99	2.28
+Computer support specialist	114138.49	2.23
+Librarian	114152.24	2.23
+Politician	114030.35	2.23
+Human resources assistant	112682.97	2.2
+Photographer	111930.18	2.19
+Pilot	111549.02	2.18
+Police officer	110918.46	2.17
+Loan officer	110836.27	2.17
+Pharmacist	110087.46	2.15
 
 
 
