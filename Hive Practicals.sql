@@ -925,7 +925,7 @@ Time taken: 0.047 seconds, Fetched: 52 row(s)
 here 52 rows because in external table 1 records for Pilot  coming from custs_add and 51 from custs thats why for Pilot fields comes 2 times in output
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Q.Join in Hive:-
+Q.Join in Hive:- 
 --------------
 
 emp.txt:-
@@ -988,7 +988,7 @@ venkatesh	venki@gmail.com
 ------------------------------------------------------------------------
 
 
-INNER JOIN:-
+INNER JOIN:- Fetch only matching records from both table
 ----------
 
 SELECT a.name, a.city,a.salary,b.email 
@@ -1005,7 +1005,7 @@ tarun	Pondi	300000.0	tarun@edureka.in
 OUTER JOIN:-
 -----------
 
-LEFT OUTER JOIN:-
+LEFT OUTER JOIN:- Fetch Matching records from both table and non-matching record from L.H.S table
 ---------------
 
 SELECT a.name,a.city,a.salary,b.email
@@ -1035,7 +1035,7 @@ a.txnno	a.txndate	a.custno	a.amount	a.category	a.product	a.city	a.state	a.spendb
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-RIGHT OUTER JOIN:-
+RIGHT OUTER JOIN:- Fetch Matching records from both table and non-matching record from R.H.S table
 ----------------
 
 SELECT A.name,a.city,a.salary,b.email
@@ -1051,7 +1051,7 @@ NULL	NULL	NULL	nagesh@yahoo.com
 NULL	NULL	NULL	venki@gmail.com
 ------------------------------------------------------------------------------
 
-FULL OUTER JOIN:-
+FULL OUTER JOIN:- Fetch Matching records one time and non-matching records from both table
 ---------------
 
 SELECT a.name,a.city,a.salary,b.email
