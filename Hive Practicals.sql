@@ -925,18 +925,402 @@ Time taken: 0.047 seconds, Fetched: 52 row(s)
 here 52 rows because in external table 1 records for Pilot  coming from custs_add and 51 from custs thats why for Pilot fields comes 2 times in output
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
+Q.Join in Hive:-
+--------------
+
+emp.txt:-
+-------
+swetha,250000,Chennai
+anamika,200000,Kanyakumari
+tarun,300000,Pondi
+anita,250000,Selam
+---------------------------------
+
+email.txt:-
+---------
+swetha,swetha@gmail.com
+tarun,tarun@edureka.in
+nagesh,nagesh@yahoo.com
+venkatesh,venki@gmail.com
+
+--------------------------------
+
+CREATE TABLE employee
+(
+name string,
+salary float,
+city string
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+LOAD DATA LOCAL INPATH '/home/hduser/emp.txt' INTO TABLE employee;
 
 
+select * from employee;
+
+output is:-
+employee.name	employee.salary	employee.city
+swetha	250000.0	Chennai
+anamika	200000.0	Kanyakumari
+tarun	300000.0	Pondi
+anita	250000.0	Selam
+---------------------------------------------------------------------
+
+CREATE TABLE mailid
+(
+name string,
+email string
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+LOAD DATA LOCAL INPATH '/home/hduser/email.txt' INTO TABLE mailid;
+
+select * from mailid;
+
+output is:-
+mailid.name	mailid.email
+swetha	swetha@gmail.com
+tarun	tarun@edureka.in
+nagesh	nagesh@yahoo.com
+venkatesh	venki@gmail.com
+------------------------------------------------------------------------
 
 
+INNER JOIN:-
+----------
+
+SELECT a.name, a.city,a.salary,b.email 
+FROM employee a
+JOIN mailid b
+ON a.name=b.name;
+
+output is:-
+a.name	a.city	a.salary	b.email
+swetha	Chennai	250000.0	swetha@gmail.com
+tarun	Pondi	300000.0	tarun@edureka.in
+-------------------------------------------------------------------------
+
+OUTER JOIN:-
+-----------
+
+LEFT OUTER JOIN:-
+---------------
+
+SELECT a.name,a.city,a.salary,b.email
+FROM employee a
+LEFT OUTER JOIN mailid b
+ON a.name=b.name;
+
+output is:-
+a.name	a.city	a.salary	b.email
+swetha	Chennai	250000.0	swetha@gmail.com
+anamika	Kanyakumari	200000.0	NULL
+tarun	Pondi	300000.0	tarun@edureka.in
+anita	Selam	250000.0	NULL
+
+SELECT * FROM txnrecords a
+LEFT OUTER JOIN customer b
+ON a.custno=b.custno
+WHERE b.firstname is NULL;
+
+output is:-
+a.txnno	a.txndate	a.custno	a.amount	a.category	a.product	a.city	a.state	a.spendby	b.custno	b.firstname	b.lastname	b.age	b.profession
+5483	07-17-2011	4000000	103.79	Indoor Games	Bowling	Flint	Michigancredit	NULL	NULL	NULL	NULL	NULL
+19041	08-01-2011	4000000	175.28	Games	Portable Electronic Games	Irvine	California	credit	NULL	NULL	NULL	NULL	NULL
+19757	10-30-2011	4000000	19.96	Outdoor Recreation	Running	St. Petersburg	Florida	cash	NULL	NULL	NULL	NULL	NULL
+44544	06-08-2011	4000000	150.06	Outdoor Recreation	Riding ScootersNewark	New Jersey	credit	NULL	NULL	NULL	NULL	NULL
+49461	07-12-2011	4000000	188.13	Winter Sports	Cross-Country Skiing	El Paso	Texas	credit	NULL	NULL	NULL	NULL	NULL
+----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+RIGHT OUTER JOIN:-
+----------------
+
+SELECT A.name,a.city,a.salary,b.email
+FROM employee a
+RIGHT OUTER JOIN mailid b
+ON a.name=b.name;
+
+output is:-
+a.name	a.city	a.salary	b.email
+swetha	Chennai	250000.0	swetha@gmail.com
+tarun	Pondi	300000.0	tarun@edureka.in
+NULL	NULL	NULL	nagesh@yahoo.com
+NULL	NULL	NULL	venki@gmail.com
+------------------------------------------------------------------------------
+
+FULL OUTER JOIN:-
+---------------
+
+SELECT a.name,a.city,a.salary,b.email
+FROM employee a
+FULL OUTER JOIN mailid b
+ON a.name=b.name;
+
+output is:-
+a.name	a.city	a.salary	b.email
+anamika	Kanyakumari	200000.0	NULL
+anita	Selam	250000.0	NULL
+NULL	NULL	NULL	nagesh@yahoo.com
+swetha	Chennai	250000.0	swetha@gmail.com
+tarun	Pondi	300000.0	tarun@edureka.in
+NULL	NULL	NULL	venki@gmail.com
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. To execute script from linux terminal:-
+----------------------------------------
+
+hive -f filename.sql
+hive -f professioncount.sql
+9568 records
+
+professioncount.sql:-
+-------------------
+use niit;
+
+set myage=45;
+
+--select profession,count(*)  from customer where age >={hiveconf:myage} group by profession order by profession;
+
+--select profession,count(*)  from customer where age >=45 group by profession order by profession;
+
+select * from customer where age >= ${hiveconf:myage};
+------------------------------------------------------------------------------------------------------------------------------
+
+Q. To execute command from linux terminal:-
+-----------------------------------------
+
+hive -hiveconf myage=25 -f professioncount.sql
+9568 records
+
+professioncount.sql:-
+-------------------
+use niit;
+
+--set myage=45;
+
+--select profession,count(*)  from customer where age >={hiveconf:myage} group by profession order by profession;
+
+--select profession,count(*)  from customer where age >=45 group by profession order by profession;
+
+select * from customer where age >= ${hiveconf:myage};
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Q. To execute command from linux terminal:-
+-----------------------------------------
+
+hive -e "select * from niit.customer"
+10000 records
+----------------------------------------------------------------------------------------------------
+
+Q. Setting up local variables and parameters in hive:-
+-----------------------------------------------------
+
+set myage=25;
+
+select * from customer where age >= ${hiveconf:myage};
+9568 records
+-------------------------------------------------------------------------------------
+
+Q.To see all the available variables, from the linux terminal, run:-
+------------------------------------------------------------------
+
+hive -e 'set;'
+
+or from the hive terminal, run:-
+------------------------------
+set;
+
+-----------------------------------------------------------------------------------
+
+one can use hivevar variables as well, putting them into sql snippets or can be included from hive CLI using the source command (or pass as -i option from command line). The benefit here is that the variable can then be used with or without the hivevar prefix, and allow something akin to global vs local use.
+
+So, assume have some setup.sql which sets a tablename variable:
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+In hive terminal:-
+----------------
+set hivevar:tablename=customer;
+
+then, I can bring into hive:
+
+source /home/hduser/customer.sql;
+
+customer.sql
+------------
+select * from ${tablename};
+
+or
+
+select * from ${hivevar:tablename};
+-----------------------------------------------------------------------------------------------------------
+
+Q.Could also set a "local" tablename, which would affect the use of ${tablename}, but not ${hivevar:tablename}
+
+In hive terminal:-
+
+set tablename1=txnrecords;
+
+set hivevar:tablename=txnrecords;
+
+hive> select * from ${tablename1};
+
+vs
+
+hive> select * from ${hivevar:tablename};
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q.Control of number of mappers in hive
+------------------------------------
+set mapreduce.input.fileinputformat.split.minsize=134217728;
 
 
+Q. if you want to combine multiple small files
+-------------------------------------------
+set mapreduce.input.fileinputformat.split.maxsize=134217728;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. User Define Functions:- In hive terminal
+-------------------------
+
+show databases;
+
+use niit;
 
 
+CREATE TABLE testing
+(
+id string,
+unixtime string
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
 
 
+LOAD DATA LOCAL INPATH '/home/hduser/counter.txt' INTO TABLE testing;
+-----------------------------------------------------------------------
+
+select * from testing;
+
+output is:-
+testing.id	testing.unixtime
+one	1386023259550
+two	1389523259550
+three	1389523259550
+four	1389523259550
 
 
+Add the jar in the hive:- 
+-----------------------
 
+add jar /home/hduser/udfhive.jar;
+
+
+To display the jar files in hive:-
+--------------------------------
+
+list jars;
+
+
+Define user function:-
+--------------------
+
+create temporary function userdate as 'com.niit.udfhive.UnixtimeToDate';
+
+
+Then use function 'userdate'
+---------------------------
+
+select id, userdate(unixtime) as datetime from testing;
+
+output is:-
+id	datetime
+one	3/12/13 3:57 AM
+two	12/1/14 4:10 PM
+three	12/1/14 4:10 PM
+four	12/1/14 4:10 PM
+-------------------------------------------------------------------------------------------
+
+Q.Processing Unstructured data using hive for Word count:-
+---------------------------------------------------------
+
+file.txt
+--------
+we are learning hadoop
+hadoop has two main components
+hdfs and mapreduce
+hdfs is storage
+mapreduce is a processing framework
+----------------------------------------------
+
+CREATE TABLE input(line string);
+
+LOAD DATA LOCAL INPATH '/home/hduser/file.txt' OVERWRITE INTO TABLE input;
+
+--------------------------------------------------------------------------
+
+select split(line,' ') as word from input;
+
+output is:-
+["we","are","learning","hadoop"]
+["hadoop","has","two","main","components"]
+["hdfs","and","mapreduce"]
+["hdfs","is","storage"]
+["mapreduce","is","a","processing","framework"]
+
+----------------------------------------------------------------------------
+
+select explode(split(line,' ')) as word from input;
+
+output is:-
+word
+we
+are
+learning
+hadoop
+hadoop
+has
+two
+main
+components
+hdfs
+and
+mapreduce
+hdfs
+is
+storage
+mapreduce
+is
+a
+processing
+framework
+
+---------------------------------------------------------------------------------------------------------------------------
+
+select word,count(*) as count from(select explode(split(line,' ')) as word from input) a group by word order by count desc;
+
+output is:-
+word	count
+hdfs	2
+mapreduce	2
+hadoop	2
+is	2
+we	1
+two	1
+storage	1
+processing	1
+main	1
+learning	1
+has	1
+framework	1
+components	1
+are	1
+and	1
+a	1
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
